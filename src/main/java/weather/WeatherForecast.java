@@ -4,7 +4,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,20 +15,17 @@ public class WeatherForecast {
     private static String OPEN_WEATHER_MAP_TOKEN = "7b8aedb7fbb758c13688845658637a2b";
     private static String OPEN_WEATHER_MAP_UNITS = "metric";
 
-    private String city;
     private String name;
     private double latitude;
     private double longitude;
     private String country;
 
-    List<WeatherReport> weatherReports = new ArrayList<WeatherReport>();
+    List<WeatherReport> weatherReports = new ArrayList<>();
 
     public static JSONObject getWeatherForecastForCity(String city) {
         try {
-            String url = "http://samples.openweathermap.org/data/2.5/forecast?q=" + city + ",us&appid=" + OPEN_WEATHER_MAP_TOKEN;
-            URI uri = new URI(url);
-            JSONTokener tokener = new JSONTokener(uri.toURL().openStream());
-            return new JSONObject(tokener);
+            InputStream inputStream = getWeatherForecastApiUriStream(city);
+            return getJsonObject(inputStream);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -33,30 +33,35 @@ public class WeatherForecast {
         return null;
     }
 
-    public WeatherForecast(JSONObject weatherForecast) {
+    private static JSONObject getJsonObject(InputStream inputStream) {
+        JSONTokener tokener = new JSONTokener(inputStream);
+        return new JSONObject(tokener);
+    }
+
+    public static InputStream getWeatherForecastApiUriStream(String city) throws URISyntaxException, IOException {
+        String uri = "http://samples.openweathermap.org/data/2.5/forecast?q=" + city + ",us&appid=" + OPEN_WEATHER_MAP_TOKEN;
+        return new URI(uri).toURL().openStream();
+    }
+
+    WeatherForecast(JSONObject weatherForecast) {
         JSONObject city = weatherForecast.getJSONObject("city");
 
-        this.name = city.getString("name");
-        this.latitude = city.getJSONObject("coord").getDouble("lat");
-        this.longitude = city.getJSONObject("coord").getDouble("lon");
-        this.country = city.getString("country");
+        this.setName(city.getString("name"));
+        this.setLatitude(city.getJSONObject("coord").getDouble("lat"));
+        this.setLongitude(city.getJSONObject("coord").getDouble("lon"));
+        this.setCountry(city.getString("country"));
 
-        JSONArray weatherReports = weatherForecast.getJSONArray("list");
+        JSONArray weatherReportsJson = weatherForecast.getJSONArray("list");
+        List<WeatherReport> weatherReports = new ArrayList<>();
 
         int fourDays = 8 * 4;
         for (int i = 0; i < fourDays; i++) {
-            JSONObject weatherReportJSON = (JSONObject) weatherReports.get(i);
+            JSONObject weatherReportJSON = (JSONObject) weatherReportsJson.get(i);
             final WeatherReport weatherReport = new WeatherReport(weatherReportJSON);
-            this.weatherReports.add(weatherReport);
+            weatherReports.add(weatherReport);
         }
-    }
 
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
+        this.setWeatherReports(weatherReports);
     }
 
     public String getName() {
@@ -99,12 +104,12 @@ public class WeatherForecast {
         this.weatherReports = weatherReports;
     }
 
-    public int getCurrentDayMaximumTemperature () {
+    public int getCurrentDayMaximumTemperature() {
         return this.weatherReports.get(0).getTemperatureMax();
     }
 
 
-    public int getCurrentDayMinimumTemperature () {
+    public int getCurrentDayMinimumTemperature() {
         return this.weatherReports.get(0).getTemperatureMin();
     }
 

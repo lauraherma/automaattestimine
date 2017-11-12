@@ -10,16 +10,16 @@ public class WeatherReport {
     private int temperatureMax;
 
     public WeatherReport(JSONObject weatherReportJSON) {
-        this.timestamp = weatherReportJSON.getInt("dt");
-        this.dateTime = weatherReportJSON.getString("dt_txt");
+        this.setTimestamp(weatherReportJSON.getInt("dt"));
+        this.setDateTime(weatherReportJSON.getString("dt_txt"));
 
         final JSONObject main = weatherReportJSON.getJSONObject("main");
-        this.temperature = convertKelvinToCelsius(main.getDouble("temp"));
-        this.temperatureMin = convertKelvinToCelsius(main.getDouble("temp_min"));
-        this.temperatureMax = convertKelvinToCelsius(main.getDouble("temp_max"));
+        this.setTemperature(convertKelvinToCelsius(main.getDouble("temp")));
+        this.setTemperatureMin(convertKelvinToCelsius(main.getDouble("temp_min")));
+        this.setTemperatureMax(convertKelvinToCelsius(main.getDouble("temp_max")));
     }
 
-    private int convertKelvinToCelsius(double kelvin) {
+    public int convertKelvinToCelsius(double kelvin) {
         return (int) Math.round(kelvin - 273.15f);
     }
 
