@@ -1,19 +1,23 @@
 package weather;
 
+import com.google.common.io.Files;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 public class WeatherForecast {
-    private static String OPEN_WEATHER_MAP_TOKEN = "7b8aedb7fbb758c13688845658637a2b";
+    private static String OPEN_WEATHER_MAP_TOKEN = "2fbd6d14616656d03ea35090ba7464f9";
     private static String OPEN_WEATHER_MAP_UNITS = "metric";
+    private static final String inputFilePath = "input.txt";
 
     private String name;
     private double latitude;
@@ -21,6 +25,7 @@ public class WeatherForecast {
     private String country;
 
     List<WeatherReport> weatherReports = new ArrayList<>();
+    private String coordinates;
 
     public static JSONObject getWeatherForecastForCity(String city) {
         try {
@@ -113,12 +118,41 @@ public class WeatherForecast {
         return this.weatherReports.get(0).getTemperatureMin();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] arguments) {
         try {
-            JSONObject weatherForecastJSON = WeatherForecast.getWeatherForecastForCity("Tallinn");
-            WeatherForecast weatherForecast = new WeatherForecast(weatherForecastJSON);
+            if (cityIsPresentInProgramArguments(arguments)) {
+                String city = getCityFromProgramArguments(arguments);
+                getAndCreateWeatherForecastForCity(city);
+            }
+            else {
+                String city = readCityFromInputTxt();
+                getAndCreateWeatherForecastForCity(city);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static String getCityFromProgramArguments(String[] arguments) {
+        return arguments[0];
+    }
+
+    private static boolean cityIsPresentInProgramArguments(String[] arguments) {
+        return arguments.length > 0;
+    }
+
+    private static void getAndCreateWeatherForecastForCity (String city) {
+        JSONObject weatherForecastJSON = WeatherForecast.getWeatherForecastForCity(city);
+        WeatherForecast weatherForecast = new WeatherForecast(weatherForecastJSON);
+    }
+
+    private static String readCityFromInputTxt() throws IOException {
+        File file = new File(inputFilePath);
+        List<String> lines = Files.readLines(file, Charset.defaultCharset());
+        return lines.get(0);
+    }
+
+    public String getCoordinates() {
+        return null;
     }
 }
