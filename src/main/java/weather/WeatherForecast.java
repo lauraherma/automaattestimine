@@ -24,7 +24,6 @@ public class WeatherForecast {
     private String country;
 
     private List<WeatherReport> weatherReports = new ArrayList<>();
-    private String coordinates;
 
     WeatherForecast(JSONObject weatherForecast) {
         JSONObject city = weatherForecast.getJSONObject("city");
@@ -133,10 +132,10 @@ public class WeatherForecast {
         return weatherForecast;
     }
 
-    private static String readCityFromInputTxt() throws IOException {
+    private static List<String> readCitiesFromInputTxt() throws IOException {
         File file = new File(inputFilePath);
         List<String> lines = Files.readLines(file, Charset.defaultCharset());
-        return lines.get(0);
+        return lines;
     }
 
     public String getCoordinates() {
@@ -158,46 +157,6 @@ public class WeatherForecast {
                 '}';
     }
 
-    private static void writeToFile(WeatherForecast weatherForecast) throws FileNotFoundException, UnsupportedEncodingException {
-        PrintWriter writer = new PrintWriter(weatherForecast.cityName + ".txt", "UTF-8");
-        writer.println("City: " + weatherForecast.getName());
-        writer.println("Coordinates: " + weatherForecast.getCoordinates());
-        writer.println("Current temperature: " + weatherForecast.getWeatherReports().get(0).getTemperature() + "°C");
-
-        for (int day = 1; day <= 3; day++) {
-            List<Integer> averageTemperatures = getAverageFromPeriod(weatherForecast, day);
-            int temperatureMin = averageTemperatures.get(0);
-            int temperatureMax = averageTemperatures.get(1);
-            writer.println("Minimum temperature for day " + day + " is " + temperatureMin + "°C and maximum is " + temperatureMax + "°C");
-        }
-
-        writer.close();
-    }
-
-    protected static List<Integer> getAverageFromPeriod(WeatherForecast weatherForecast, int day) {
-        final int hoursPerReport = 3;
-        final int hoursPerDay = 24;
-        final int reportsPerDay = hoursPerDay / hoursPerReport;
-
-        int reportsFromIndex = day * reportsPerDay;
-        int reportsToIndex = reportsFromIndex + reportsPerDay;
-
-        List<Integer> minimumTemperatures = new ArrayList<>();
-        List<Integer> maximumTemperatures = new ArrayList<>();
-
-        for (int dayIndex = reportsFromIndex; dayIndex < reportsToIndex; dayIndex++) {
-            final WeatherReport weatherReport = weatherForecast.getWeatherReports().get(dayIndex);
-            minimumTemperatures.add(weatherReport.getTemperatureMin());
-            maximumTemperatures.add(weatherReport.getTemperatureMax());
-        }
-
-        List<Integer> averageTemperatures = new ArrayList<>();
-        averageTemperatures.add(minimumTemperatures.stream().mapToInt(temperature -> temperature).sum() / reportsPerDay);
-        averageTemperatures.add(maximumTemperatures.stream().mapToInt(temperature -> temperature).sum() / reportsPerDay);
-
-        return averageTemperatures;
-    }
-
     public static Optional<String> getCityFromConsole() {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("Enter city: ");
@@ -216,16 +175,28 @@ public class WeatherForecast {
 
             if (optionalCity.isPresent() && !optionalCity.get().equals("")) {
                 String city = optionalCity.get();
-                writeToFile(getAndCreateWeatherForecastForCity(city));
+                writeWeatherForecastForCity(city);
             } else if (cityIsPresentInProgramArguments(arguments)) {
                 String city = getCityFromProgramArguments(arguments);
-                writeToFile(getAndCreateWeatherForecastForCity(city));
+                writeWeatherForecastForCity(city);
             } else {
-                String city = readCityFromInputTxt();
-                writeToFile(getAndCreateWeatherForecastForCity(city));
+                File inputFile = new File(inputFilePath);
+                FileWeatherForecast fileWeatherForecast = new FileWeatherForecast();
+                fileWeatherForecast.setInputFile(inputFile);
+
+                for (String city : fileWeatherForecast.getCitiesFromInputFile()) {
+                    writeWeatherForecastForCity(city);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void writeWeatherForecastForCity(String city) throws FileNotFoundException, UnsupportedEncodingException {
+        WeatherForecast weatherForecast = getAndCreateWeatherForecastForCity(city);
+        WeatherForecastWriter weatherForecastWriter = new WeatherForecastWriter();
+        weatherForecastWriter.setWeatherForecast(weatherForecast);
+        weatherForecastWriter.writeToFile();
     }
 }
