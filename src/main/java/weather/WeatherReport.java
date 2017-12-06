@@ -62,4 +62,15 @@ public class WeatherReport {
     public void setTemperatureMax(int temperatureMax) {
         this.temperatureMax = temperatureMax;
     }
+
+    @Override
+    public String toString() {
+        return "WeatherReport{" +
+                "timestamp=" + timestamp +
+                ", dateTime='" + dateTime + '\'' +
+                ", temperature=" + temperature +
+                ", temperatureMin=" + temperatureMin +
+                ", temperatureMax=" + temperatureMax +
+                '}';
+    }
 }

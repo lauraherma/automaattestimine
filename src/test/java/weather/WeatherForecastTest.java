@@ -28,7 +28,7 @@ class WeatherForecastTest {
         final String jsonData = getLinesFromFile("api-mock-data.json");
         JSONObject mockWeatherReport = new JSONObject(jsonData);
         this.weatherForecast = new WeatherForecast(mockWeatherReport);
-        this.weatherReport = this.weatherForecast.weatherReports.get(0);
+        this.weatherReport = this.weatherForecast.getWeatherReports().get(0);
     }
 
     public static String getLinesFromFile(String fileName) {
@@ -71,26 +71,25 @@ class WeatherForecastTest {
         assertEquals(expected, actual);
     }
 
-//
-//    @Test
-//    public void testIsCoordinatesInRightFormat() {
-//        String coordinates = weatherForecast.getCoordinates();
-//        Pattern pattern = Pattern.compile("[a-zA-Z]{3}:[a-zA-Z]{3}");
-//        Matcher matcher = pattern.matcher(coordinates);
-//        boolean expected = matcher.find();
-//        boolean actual = true;
-//
-//        assertEquals(expected, actual);
-//    }
-//
-//    @Test
-//    public void testIsCoordinatesRightLength() {
-//        String coordinates = weatherForecast.getCoordinates();
-//        int expected = 7;
-//        int actual = coordinates.length();
-//
-//        assertEquals(expected, actual);
-//    }
+    @Test
+    public void testIsCoordinatesInRightFormat() {
+        String coordinates = weatherForecast.getCoordinates();
+        Pattern pattern = Pattern.compile("[0-9]{3}:[0-9]{3}");
+        Matcher matcher = pattern.matcher(coordinates);
+        boolean expected = matcher.find();
+        boolean actual = true;
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testIsCoordinatesRightLength() {
+        String coordinates = weatherForecast.getCoordinates();
+        int expected = 7;
+        int actual = coordinates.length();
+
+        assertEquals(expected, actual);
+    }
 
     @Test
     public void testCurrentDayMaximumTemperature() {
@@ -107,34 +106,57 @@ class WeatherForecastTest {
 
         assertEquals(expected, actual);
     }
+
     @Test
-    public void testWeatherForecastName(){
-        String expected="Altstadt";
-        String actual=weatherForecast.getName();
-        assertEquals(expected,actual);
+    public void testWeatherForecastName() {
+        String expected = "Altstadt";
+        String actual = weatherForecast.getName();
+        assertEquals(expected, actual);
     }
+
     @Test
-    public void testWeatherForecastLatitude(){
-        Double expected=48.137;
-        Double actual=weatherForecast.getLatitude();
-        assertEquals(expected,actual);
+    public void testWeatherForecastLatitude() {
+        Double expected = 48.137;
+        Double actual = weatherForecast.getLatitude();
+        assertEquals(expected, actual);
     }
+
     @Test
-    public void testWeatherForecastLongitude(){
-        Double expected=11.5752;
-        Double actual=weatherForecast.getLongitude();
-        assertEquals(expected,actual);
+    public void testWeatherForecastLongitude() {
+        Double expected = 11.5752;
+        Double actual = weatherForecast.getLongitude();
+        assertEquals(expected, actual);
     }
+
     @Test
-    public void testWeatherForecastCountry(){
-        String expected="none";
-        String actual=weatherForecast.getCountry();
-        assertEquals(expected,actual);
+    public void testWeatherForecastCountry() {
+        String expected = "none";
+        String actual = weatherForecast.getCountry();
+        assertEquals(expected, actual);
     }
+
     @Test
-    public void testWeatherForecastWeatherReportCount(){
-        int expected=32;
-        int actual=weatherForecast.getWeatherReports().size();
-        assertEquals(expected,actual);
+    public void testWeatherForecastWeatherReportCount() {
+        int expected = 32;
+        int actual = weatherForecast.getWeatherReports().size();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetAverageFromPeriodMinimum() {
+        List<Integer> averageFromPeriod = WeatherForecast.getAverageFromPeriod(weatherForecast, 1);
+
+        int expected = 2;
+        int actual = averageFromPeriod.get(0);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testGetAverageFromPeriodMaximum() {
+        List<Integer> averageFromPeriod = WeatherForecast.getAverageFromPeriod(weatherForecast, 1);
+
+        int expected = 2;
+        int actual = averageFromPeriod.get(1);
+        assertEquals(expected, actual);
     }
 }
