@@ -22,7 +22,7 @@ public class WeatherForecastWriter {
 
         for (int day = 1; day <= 3; day++) {
             if (weatherForecast.getWeatherReports().size() > 0) {
-                List<Integer> averageTemperatures = getAverageFromPeriod(weatherForecast, day);
+                List<Integer> averageTemperatures = weatherForecast.getAverageForPeriod(day);
                 int temperatureMin = averageTemperatures.get(0);
                 int temperatureMax = averageTemperatures.get(1);
                 writer.println("Minimum temperature for day " + day + " is " + temperatureMin + "°C and maximum is " + temperatureMax + "°C");
@@ -32,27 +32,5 @@ public class WeatherForecastWriter {
         writer.close();
     }
 
-    List<Integer> getAverageFromPeriod(WeatherForecast weatherForecast, int day) {
-        final int hoursPerReport = 3;
-        final int hoursPerDay = 24;
-        final int reportsPerDay = hoursPerDay / hoursPerReport;
 
-        int reportsFromIndex = day * reportsPerDay;
-        int reportsToIndex = reportsFromIndex + reportsPerDay;
-
-        List<Integer> minimumTemperatures = new ArrayList<>();
-        List<Integer> maximumTemperatures = new ArrayList<>();
-
-        for (int dayIndex = reportsFromIndex; dayIndex < reportsToIndex; dayIndex++) {
-            final WeatherReport weatherReport = weatherForecast.getWeatherReports().get(dayIndex);
-            minimumTemperatures.add(weatherReport.getTemperatureMin());
-            maximumTemperatures.add(weatherReport.getTemperatureMax());
-        }
-
-        List<Integer> averageTemperatures = new ArrayList<>();
-        averageTemperatures.add(minimumTemperatures.stream().mapToInt(temperature -> temperature).sum() / reportsPerDay);
-        averageTemperatures.add(maximumTemperatures.stream().mapToInt(temperature -> temperature).sum() / reportsPerDay);
-
-        return averageTemperatures;
-    }
 }

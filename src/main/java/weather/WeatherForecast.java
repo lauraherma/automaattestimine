@@ -1,6 +1,5 @@
 package weather;
 
-import com.google.common.io.Files;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -9,7 +8,6 @@ import org.json.JSONTokener;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,25 +44,53 @@ public class WeatherForecast {
         this.setWeatherReports(weatherReports);
     }
 
-    public static JSONObject getWeatherForecastForCity(String city) {
-        try {
-            InputStream inputStream = getWeatherForecastApiUriStream(city);
-            return getJsonObject(inputStream);
-        } catch (Exception e) {
-            e.printStackTrace();
+    private static WeatherForecast createWeatherForecastForCity(String city) {
+        JSONObject weatherForecastJSON = WeatherForecast.getWeatherForecastForCity(city);
+        WeatherForecast weatherForecast = new WeatherForecast(weatherForecastJSON);
+        return weatherForecast;
+    }
+
+
+    public String getCoordinates() {
+        int latitudeDoubleToInteger = (int) getLatitude();
+        int longitudeDoubleToInteger = (int) getLongitude();
+        String latitude = Integer.toString(latitudeDoubleToInteger);
+        String longitude = Integer.toString(longitudeDoubleToInteger);
+        String formattedLatitude = StringUtils.leftPad(latitude, 3, "0");
+        String formattedLongitude = StringUtils.leftPad(longitude, 3, "0");
+        return formattedLatitude + ":" + formattedLongitude;
+    }
+    List<Integer> getAverageForPeriod( int day) {
+        final int hoursPerReport = 3;
+        final int hoursPerDay = 24;
+        final int reportsPerDay = hoursPerDay / hoursPerReport;
+
+        int reportsFromIndex = day * reportsPerDay;
+        int reportsToIndex = reportsFromIndex + reportsPerDay;
+
+        List<Integer> minimumTemperatures = new ArrayList<>();
+        List<Integer> maximumTemperatures = new ArrayList<>();
+
+        for (int dayIndex = reportsFromIndex; dayIndex < reportsToIndex; dayIndex++) {
+            final WeatherReport weatherReport = this.getWeatherReports().get(dayIndex);
+            minimumTemperatures.add(weatherReport.getTemperatureMin());
+            maximumTemperatures.add(weatherReport.getTemperatureMax());
         }
 
-        return null;
+        List<Integer> averageTemperatures = new ArrayList<>();
+        averageTemperatures.add(minimumTemperatures.stream().mapToInt(temperature -> temperature).sum() / reportsPerDay);
+        averageTemperatures.add(maximumTemperatures.stream().mapToInt(temperature -> temperature).sum() / reportsPerDay);
+
+        return averageTemperatures;
     }
 
-    private static JSONObject getJsonObject(InputStream inputStream) {
-        JSONTokener tokener = new JSONTokener(inputStream);
-        return new JSONObject(tokener);
-    }
-
-    public static InputStream getWeatherForecastApiUriStream(String city) throws URISyntaxException, IOException {
-        String uri = "http://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + OPEN_WEATHER_MAP_TOKEN;
-        return new URI(uri).toURL().openStream();
+    @Override
+    public String toString() {
+        return "WeatherForecast{" +
+                "name='" + cityName + '\'' +
+                ", country='" + country + '\'' +
+                ", coordinates='" + getCoordinates() + '\'' +
+                '}';
     }
 
 
@@ -117,6 +143,15 @@ public class WeatherForecast {
         return this.weatherReports.get(0).getTemperatureMin();
     }
 
+    private static JSONObject getJsonObject(InputStream inputStream) {
+        JSONTokener tokener = new JSONTokener(inputStream);
+        return new JSONObject(tokener);
+    }
+
+    public static InputStream getWeatherForecastApiUriStream(String city) throws URISyntaxException, IOException {
+        String uri = "http://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + OPEN_WEATHER_MAP_TOKEN;
+        return new URI(uri).toURL().openStream();
+    }
 
     private static String getCityFromProgramArguments(String[] arguments) {
         return arguments[0];
@@ -126,38 +161,20 @@ public class WeatherForecast {
         return arguments.length > 0;
     }
 
-    private static WeatherForecast getAndCreateWeatherForecastForCity(String city) {
-        JSONObject weatherForecastJSON = WeatherForecast.getWeatherForecastForCity(city);
-        WeatherForecast weatherForecast = new WeatherForecast(weatherForecastJSON);
-        return weatherForecast;
+
+    private static JSONObject getWeatherForecastForCity(String city) {
+        try {
+            InputStream inputStream = getWeatherForecastApiUriStream(city);
+            return getJsonObject(inputStream);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
-    private static List<String> readCitiesFromInputTxt() throws IOException {
-        File file = new File(inputFilePath);
-        List<String> lines = Files.readLines(file, Charset.defaultCharset());
-        return lines;
-    }
 
-    public String getCoordinates() {
-        int latitudeDoubleToInteger = (int) getLatitude();
-        int longitudeDoubleToInteger = (int) getLongitude();
-        String latitude = Integer.toString(latitudeDoubleToInteger);
-        String longitude = Integer.toString(longitudeDoubleToInteger);
-        String formattedLatitude = StringUtils.leftPad(latitude, 3, "0");
-        String formattedLongitude = StringUtils.leftPad(longitude, 3, "0");
-        return formattedLatitude + ":" + formattedLongitude;
-    }
-
-    @Override
-    public String toString() {
-        return "WeatherForecast{" +
-                "name='" + cityName + '\'' +
-                ", country='" + country + '\'' +
-                ", coordinates='" + getCoordinates() + '\'' +
-                '}';
-    }
-
-    public static Optional<String> getCityFromConsole() {
+    private static Optional<String> getCityFromConsole() {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("Enter city: ");
 
@@ -181,10 +198,10 @@ public class WeatherForecast {
                 writeWeatherForecastForCity(city);
             } else {
                 File inputFile = new File(inputFilePath);
-                FileWeatherForecast fileWeatherForecast = new FileWeatherForecast();
+                FileCityNames fileWeatherForecast = new FileCityNames();
                 fileWeatherForecast.setInputFile(inputFile);
 
-                for (String city : fileWeatherForecast.getCitiesFromInputFile()) {
+                for (String city : fileWeatherForecast.readCitiesFromInputFile()) {
                     writeWeatherForecastForCity(city);
                 }
             }
@@ -194,7 +211,7 @@ public class WeatherForecast {
     }
 
     private static void writeWeatherForecastForCity(String city) throws FileNotFoundException, UnsupportedEncodingException {
-        WeatherForecast weatherForecast = getAndCreateWeatherForecastForCity(city);
+        WeatherForecast weatherForecast = createWeatherForecastForCity(city);
         WeatherForecastWriter weatherForecastWriter = new WeatherForecastWriter();
         weatherForecastWriter.setWeatherForecast(weatherForecast);
         weatherForecastWriter.writeToFile();

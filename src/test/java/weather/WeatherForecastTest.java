@@ -2,17 +2,13 @@ package weather;
 
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -147,10 +143,8 @@ class WeatherForecastTest {
 
     @Test
     public void testGetAverageFromPeriodMinimum() {
-        WeatherForecastWriter weatherForecastWriter = new WeatherForecastWriter();
-        weatherForecastWriter.setWeatherForecast(weatherForecast);
-        List<Integer> averageFromPeriod = weatherForecastWriter.getAverageFromPeriod(weatherForecast, 1);
 
+        List<Integer> averageFromPeriod = weatherForecast.getAverageForPeriod(1);
         int expected = 2;
         int actual = averageFromPeriod.get(0);
         assertEquals(expected, actual);
@@ -158,9 +152,7 @@ class WeatherForecastTest {
 
     @Test
     public void testGetAverageFromPeriodMaximum() {
-        WeatherForecastWriter weatherForecastWriter = new WeatherForecastWriter();
-        weatherForecastWriter.setWeatherForecast(weatherForecast);
-        List<Integer> averageFromPeriod = weatherForecastWriter.getAverageFromPeriod(weatherForecast, 1);
+        List<Integer> averageFromPeriod = weatherForecast.getAverageForPeriod(1);
 
         int expected = 2;
         int actual = averageFromPeriod.get(1);
@@ -169,21 +161,21 @@ class WeatherForecastTest {
 
     @Test
     public void testGetCitiesNotCalled() throws IOException {
-        FileWeatherForecast fileWeatherForecast = mock(FileWeatherForecast.class);
-        verify(fileWeatherForecast, times(0)).getCitiesFromInputFile();
+        FileCityNames fileWeatherForecast = mock(FileCityNames.class);
+        verify(fileWeatherForecast, times(0)).readCitiesFromInputFile();
     }
 
     @Test
     public void testMockSetInputFile() {
         File file = mock(File.class);
-        FileWeatherForecast fileWeatherForecast = spy(FileWeatherForecast.class);
+        FileCityNames fileWeatherForecast = spy(FileCityNames.class);
         fileWeatherForecast.setInputFile(file);
         verify(fileWeatherForecast, times(1)).setInputFile(file);
     }
 
     @Test
     public void testMockWriteToFile() throws FileNotFoundException, UnsupportedEncodingException {
-        WeatherForecast weatherForecastMock= mock(WeatherForecast.class);
+        WeatherForecast weatherForecastMock = mock(WeatherForecast.class);
         WeatherForecastWriter weatherForecastWriterMock = spy(WeatherForecastWriter.class);
         weatherForecastWriterMock.setWeatherForecast(weatherForecastMock);
         weatherForecastWriterMock.writeToFile();

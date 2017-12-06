@@ -6,17 +6,15 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class FileWeatherForecast {
+public class FileCityNames {
     private File inputFile;
 
-    FileWeatherForecast() {
-    }
 
     void setInputFile(File inputFile) {
         this.inputFile = inputFile;
     }
 
-    List<String> getCitiesFromInputFile() throws IOException {
+    List<String> readCitiesFromInputFile() throws IOException {
         return Files.readLines(inputFile, Charset.defaultCharset());
     }
 }
