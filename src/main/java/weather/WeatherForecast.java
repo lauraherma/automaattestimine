@@ -35,8 +35,8 @@ public class WeatherForecast {
         List<WeatherReport> weatherReports = new ArrayList<>();
 
         int fourDays = 8 * 4;
-        for (int i = 0; i < fourDays; i++) {
-            JSONObject weatherReportJSON = (JSONObject) weatherReportsJson.get(i);
+        for (int weatherReportIndex = 0; weatherReportIndex < fourDays; weatherReportIndex++) {
+            JSONObject weatherReportJSON = (JSONObject) weatherReportsJson.get(weatherReportIndex);
             final WeatherReport weatherReport = new WeatherReport(weatherReportJSON);
             weatherReports.add(weatherReport);
         }
